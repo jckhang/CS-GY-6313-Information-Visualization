@@ -13,8 +13,9 @@ body {
 #name {
     padding: 0px 15px;
 }
-#countries{
-	padding: 0px 15px;
+
+#countries {
+    padding: 0px 15px;
 }
 </style>
 
@@ -41,16 +42,19 @@ body {
 var url = "https://raw.githubusercontent.com/CristianFelix/infoviz/master/gapminder.json";
 var viz = d3.select("#countries");
 
-d3.json(url, function(err, json){
-	countries = json;
-	render()
+d3.json(url, function(err, json) {
+    countries = json;
+    render()
 });
 render();
+
 function render() {
-    var  change=viz.selectAll("div").data(countries);
+    var change = viz.selectAll("div").data(countries);
     change.enter()
-    	.append("div")
-    	.text(function(d){return d.name});
+        .append("div")
+        .text(function(d) {
+            return d.name
+        });
 
 }
 </script>
