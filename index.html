@@ -1,75 +1,58 @@
 <!DOCTYPE html>
 <html>
+<style>
+.navbar a {
+    color: white;
+    font-size: 30px;
+}
+
+body {
+    background-color: #D0D0D0;
+}
+
+#name {
+    padding: 0px 15px;
+}
+#countries{
+	padding: 0px 15px;
+}
+</style>
 
 <head>
     <title>Gapminder Wealth and Health</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-	<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>	
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 </head>
-<style>
-button {
-    background-color: steelblue;
-    color: white;
-    border-style: none;
-}
-
-hr {
-    display: block;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    margin-left: auto;
-    margin-right: auto;
-    border-style: inset;
-    border-width: 1px;
-}
-
-ul li {
-    list-style: none;
-}
-
-li:hover {
-    background-color: steelblue;
-    cursor: pointer;
-}
-</style>
 
 <body>
-    <div id='main'>
-        <p>
-            <h1>Countries</h1></p>
-        <p>
-            Name
-            <input type="text" id="countryName" placeholder="USA">
-            <button onclick="addCountry()" id="add">Add</button>
-        </p>
-        <p> <strong>Note: </strong>
-            <ul>Press Enter or Click Add button to append country list.</ul>
-            <ul>Hover and click country name to delete from the list.</ul>
-        </p>
-        <script>
-        //Trigger button click when press enter in the input text
-        $("#countryName").keyup(function(event) {
-            if (event.keyCode == 13) {
-                $("#add").click();
-            }
-        });
-
-        function addCountry() {
-            var li = document.createElement("li");
-            var name = document.getElementById("countryName").value;
-            li.innerHTML = name;
-            li.onclick = function() {
-                this.parentNode.removeChild(this);
-            }
-            var countryElement = document.getElementById("countryList");
-            countryElement.appendChild(li);
-            document.getElementById("countryName").value = "";
-        }
-        </script>
-        <hr>
-        <ul id='countryList'>
-        </ul>
+    <div class="navbar navbar-inverse" role="navigation">
+        <div class="navbar-header">
+            <a class="navbar-brand">Gapminder Wealth and Health</a>
+        </div>
+    </div>
+    <div id="name">
+        <h1>Countries</h1>
+    </div>
+    <div id="countries">
     </div>
 </body>
+<script>
+var url = "https://raw.githubusercontent.com/CristianFelix/infoviz/master/gapminder.json";
+var viz = d3.select("#countries");
+
+d3.json(url, function(err, json){
+	countries = json;
+	render()
+});
+render();
+function render() {
+    var  change=viz.selectAll("div").data(countries);
+    change.enter()
+    	.append("div")
+    	.text(function(d){return d.name});
+
+}
+</script>
 
 </html>
