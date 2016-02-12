@@ -16,6 +16,11 @@ body {
 
 #countries {
     padding: 0px 15px;
+    float: left;
+}
+
+li {
+    list-style-type: none;
 }
 </style>
 
@@ -35,27 +40,61 @@ body {
     <div id="name">
         <h1>Countries</h1>
     </div>
-    <div id="countries">
-    </div>
+    <ul id="countries">
+    </ul>
+    <svg width="600" height="400">
+        <rect width="600" height="400" fill="none" stroke="black" stroke-width="1">
+        </rect>
+        <g id="plot"></g>
+    </svg>
 </body>
 <script>
-var url = "https://raw.githubusercontent.com/CristianFelix/infoviz/master/gapminder.json";
-var viz = d3.select("#countries");
+var url = "https://raw.githubusercontent.com/CristianFelix/infoviz/master/Week%203/newData.json";
+var list = d3.select("#countries"),
+    plot = d3.select("#plot");
 
 d3.json(url, function(err, json) {
     countries = json;
-    render()
+    countriesFilter = countries.filter(d => d.income[2008] != undefined);
+    render(countriesFilter);
 });
-render();
+var width = 600,
+    height = 400,
+    margin = {
+        top: 90,
+        left: 20,
+        right: 20,
+        bottom: 20
+    },
+    innerWidth = width - margin.left - margin.right,
+    innerHeight = height - margin.top - margin.bottom;
 
-function render() {
-    var change = viz.selectAll("div").data(countries);
-    change.enter()
-        .append("div")
-        .text(function(d) {
-            return d.name
-        });
+var xScale = d3.scale.linear()
+    .range([0, innerWidth]),
+    yScale = d3.scale.linear()
+    .range([innerHeight, 0]);
+rScale = d3.scale.linear()
+    .range([5, 15])
+colorScale = d3.scale.category10();
 
+function render(data) {
+    var renderList = list.selectAll("div").data(data),
+        renderPlot = plot.selectAll("circle").data(data);
+    xScale.domain(d3.extent(data, d => d.income[2008]));
+    yScale.domain(d3.extent(data, d => d.lifeExpectancy[2008]));
+    rScale.domain(d3.extent(data, d => d.population[2008]))
+    renderList.enter()
+        .append("li")
+        .text(d => d.name);
+    renderPlot.enter()
+        .append("circle")
+        .attr("r", r => rScale(r.population[2008]))
+        .attr("cx", cx => xScale(cx.income[2008]))
+        .attr("cy", cy => yScale(cy.lifeExpectancy[2008]))
+        .attr("fill", color => colorScale(color.region))
+        .attr("opacity", 0.8);
+    renderPlot.attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")")
 }
 </script>
 
