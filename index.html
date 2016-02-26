@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html>
 <style>
-.navbar a {
+#title {
+    background-color: black;
     color: white;
-    font-size: 30px;
-}
-
-body {
-    background-color: #D0D0D0;
+    padding: 10px;
 }
 
 #name {
@@ -22,79 +19,113 @@ body {
 li {
     list-style-type: none;
 }
+
+.domain {
+    fill: none;
+    stroke: #000;
+}
+
+.tick {
+    font-size: 12;
+}
+
+.tick line {
+    stroke: #ccc;
+}
 </style>
 
 <head>
     <title>Gapminder Wealth and Health</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
     <script src="https://d3js.org/d3.v3.min.js"></script>
-    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 </head>
 
 <body>
-    <div class="navbar navbar-inverse" role="navigation">
-        <div class="navbar-header">
-            <a class="navbar-brand">Gapminder Wealth and Health</a>
-        </div>
+    <div id="title">
+        <h1>Gapminder Wealth and Health</h1>
     </div>
     <div id="name">
         <h1>Countries</h1>
     </div>
     <ul id="countries">
     </ul>
-    <svg width="600" height="400">
-        <rect width="600" height="400" fill="none" stroke="black" stroke-width="1">
-        </rect>
+    <svg width="600" height="410">
         <g id="plot"></g>
     </svg>
 </body>
 <script>
 var url = "https://raw.githubusercontent.com/CristianFelix/infoviz/master/Week%203/newData.json";
+// Parameters
+var year = 2008,
+    chartWidth = 600,
+    chartHeight = 400,
+    chartMargin = {
+        top: 10,
+        left: 30,
+        bottom: 20,
+        right: 20
+    },
+    chartInnerWidth = chartWidth - chartMargin.left - chartMargin.right,
+    chartInnerHeight = chartHeight - chartMargin.top - chartMargin.bottom;
+
 var list = d3.select("#countries"),
     plot = d3.select("#plot");
+var dotGroup = plot.append('g')
+    .attr("transform", "translate(" + chartMargin.left + "," + chartMargin.top + ")");
+var xAxisGroup = plot.append('g')
+    .attr("transform", "translate(" + chartMargin.left + "," + (chartInnerHeight + chartMargin.top) + ")");
+var yAxisGroup = plot.append('g')
+    .attr("transform", "translate(" + chartMargin.left + "," + chartMargin.top + ")");
 
 d3.json(url, function(err, json) {
     countries = json;
-    countriesFilter = countries.filter(d => d.income[2008] != undefined);
+    countriesFilter = countries.filter(d => d.income[year] != undefined);
     render(countriesFilter);
 });
-var width = 600,
-    height = 400,
-    margin = {
-        top: 90,
-        left: 20,
-        right: 20,
-        bottom: 20
-    },
-    innerWidth = width - margin.left - margin.right,
-    innerHeight = height - margin.top - margin.bottom;
 
-var xScale = d3.scale.linear()
-    .range([0, innerWidth]),
-    yScale = d3.scale.linear()
-    .range([innerHeight, 0]);
-rScale = d3.scale.linear()
-    .range([5, 15])
-colorScale = d3.scale.category10();
+
 
 function render(data) {
-    var renderList = list.selectAll("div").data(data),
-        renderPlot = plot.selectAll("circle").data(data);
-    xScale.domain(d3.extent(data, d => d.income[2008]));
-    yScale.domain(d3.extent(data, d => d.lifeExpectancy[2008]));
-    rScale.domain(d3.extent(data, d => d.population[2008]))
+    var renderList = list.selectAll("div").data(data);
+
+    var xScale = d3.scale.linear()
+        .range([0, chartInnerWidth])
+        .domain([-1000, d3.max(data, d => d.income[year])]);
+
+    var yScale = d3.scale.linear()
+        .range([chartInnerHeight, 0])
+        .domain(d3.extent(data, d => d.lifeExpectancy[year]));
+
+    var rScale = d3.scale.linear()
+        .range([20, 1000])
+        .domain(d3.extent(data, d => d.population[year]));
+    var colorScale = d3.scale.category10();
+
+
+    var xAxis = d3.svg.axis()
+        .tickSize(-370)
+        .scale(xScale)
+        .orient('bottom');
+    var yAxis = d3.svg.axis()
+        .tickSize(-550)
+        .scale(yScale)
+        .orient('left');
+    xAxisGroup.call(xAxis);
+    yAxisGroup.call(yAxis);
+
     renderList.enter()
         .append("li")
         .text(d => d.name);
-    renderPlot.enter()
+    dotGroup.selectAll('circle')
+        .data(data)
+        .enter()
         .append("circle")
-        .attr("r", r => rScale(r.population[2008]))
-        .attr("cx", cx => xScale(cx.income[2008]))
-        .attr("cy", cy => yScale(cy.lifeExpectancy[2008]))
+        .attr("r", r => Math.sqrt(rScale(r.population[year])/Math.PI))
+        .attr("cx", cx => xScale(cx.income[year]))
+        .attr("cy", cy => yScale(cy.lifeExpectancy[year]))
         .attr("fill", color => colorScale(color.region))
         .attr("opacity", 0.8);
-    renderPlot.attr("transform",
-        "translate(" + margin.left + "," + margin.top + ")")
+    console.log(d3.extent(data, d => Math.sqrt(rScale(d.population[year])/Math.PI)));
 }
 </script>
 
